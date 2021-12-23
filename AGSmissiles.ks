@@ -26,16 +26,12 @@ set steeringManager:maxstoppingtime to 30.
 set steeringManager:pitchpid:ki to 0.5.
 set steeringManager:yawpid:ki to 0.5.
 
-// locking throttle//
+// throttle and steering //
 
 local dThrottle is 0. // desired throttle
-
-//lock throttle to dThrottle. //allows for unlooped lock
-
 local steer_vector is up:vector.
 
 // controller gain //
-
 local conGain is 5.
 
 // targets // 
@@ -50,7 +46,6 @@ local line_of_sight is missile_target:position - ship:position. //ship's distanc
 local distance_to_target is line_of_sight:mag. //ship's distance to target (scalar)
 
 // time variables //
-
 local previousT is time:seconds.
 local previousErr is 0.
 local previousLos is line_of_sight.
@@ -59,6 +54,7 @@ local previousLos is line_of_sight.
 local v0 is getVoice(0).
     set v0:volume to 0.5.
     set v0:wave to "sine".
+    
 /////////////////////////////////// GUI SETUP /////////////////////////////////// 
 
 LOCAL gui IS GUI(0).
@@ -100,10 +96,7 @@ local radio_tarSel is modes:addradiobutton("Target selection", true).
 local radio_telemetry is modes:addradiobutton("Telemetry", false).
 
 // bottom layout //
-
 local bottom_vLayout is leftv_layout:addvlayout().
-
-
 
 // select target //
 local target_layout is bottom_vLayout:addvlayout().
@@ -116,8 +109,7 @@ local popUp_choice to "".
 local targetPopUp is target_layout:addpopupmenu().
 set targetPopUp:optionsuffix to "name".
 
-
-    // assign functions 
+// assign functions //
 
     set targetPopUp:onchange to {
         parameter value.
@@ -126,10 +118,11 @@ set targetPopUp:optionsuffix to "name".
         set target to popUp_choice.
     }.
 
-// launch button //
 
+// launch button //
 LOCAL launchButton TO target_layout:ADDBUTTON("Launch").
 set launchButton:ONCLICK TO launchFunction@.
+
 // telemetry //
 local telemetry_layout is bottom_vLayout:addvlayout().
 
@@ -138,7 +131,6 @@ set telemetry_title:style:hstretch to true.
 set telemetry_title:style:align to "center".
 
 // gain slider //
-
 local gain_title is leftv_layout:ADDLABEL(" <b> Controller Gain </b>" + conGain).
 set gain_title:style:wordwrap to false.
 set gain_title:STYLE:ALIGN TO "CENTER".
@@ -146,15 +138,15 @@ set gain_title:STYLE:ALIGN TO "CENTER".
 local gSlider is rightv_layout:addvslider(conGain,15,0).
 set gSlider:onchange to { parameter sValue. set conGain to round(sValue,1). set gain_title:text to " <b> Controller Gain </b>" + conGain. v0:play ( note(55*conGain, 0.1)). }.
 
-//create a display
+// create a display //
 local log_display is telemetry_layout:addvbox().
 
-//airspeed
+//airspeed //
 local telemetry_speed is log_display:addlabel("Airpseed " + round(ship:airspeed,5) +"m/s").
 set telemetry_speed:style:wordwrap to false.
 set telemetry_speed:style:align to "left".
 
-//distance to target
+//distance to target //
 local telemetry_targDistance is log_display:addlabel("Distance to target " + distance_to_target +"m").
 set telemetry_targDistance:style:wordwrap to false.
 set telemetry_targDistance:style:align to "left".
@@ -189,7 +181,7 @@ function launchFunction {
 
     // locking steering and throttle outside of loop //
     lock steering to steer_vector.
-    lock throttle to dThrottle. // not necessary for solid state rockets
+    lock throttle to dThrottle. // not necessary for solid fuel rockets
     set dThrottle to 1. 
 
     sas off.
@@ -256,7 +248,7 @@ function a_cmd {
     local currentErr is vAng(ship:velocity:surface, line_of_sight).
     local deltaErr is conGain*(vAng(previousLos, line_of_sight))/max(0.0002,(currentT-previousT)).
 
-    // calculating errors //
+    // calculating relative velocity //
     local rV is (ship:velocity:surface - missile_target:velocity:surface):mag.
 
     // guidance //
