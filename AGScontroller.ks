@@ -18,9 +18,6 @@
 clearScreen.
 set config:ipu to 50. 
 
-// un other scripts here
-
-
 /////////////////////////////////// VARIABLES /////////////////////////////////// 
 
 // locking throttle//
