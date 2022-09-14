@@ -16,18 +16,12 @@
 // start script
 @lazyGlobal off.
 clearScreen.
-set config:ipu to 20. 
+set config:ipu to 50. 
 
 // un other scripts here
 
 
 /////////////////////////////////// VARIABLES /////////////////////////////////// 
-
-// steering manager //
-
-set steeringManager:maxstoppingtime to 30.
-set steeringManager:pitchpid:ki to 0.5.
-set steeringManager:yawpid:ki to 0.5.
 
 // locking throttle//
 
@@ -36,7 +30,7 @@ local steer_vector is up:vector.
 
 // controller gain //
 
-local conGain is 3.
+local conGain is 4.5.
 
 // targets // 
 local missile_target is ship.
@@ -65,7 +59,6 @@ local engageNumber is 0.
 
 // missile autoassign
 
-local missileCheck is false.
 local missileIteration is engageNumber.
 /////////////////////////////////// GUI SETUP /////////////////////////////////// 
 
@@ -179,35 +172,37 @@ gui:SHOW().
 ///////////////////////////////////  MAIN LOGIC /////////////////////////////////// 
 //auto assign missile name
 
-until missileCheck  {
+until false  {
     
     local missileList is ship:partstagged("missile").
-    
-    if missileList:empty {
-        
-        set missileCheck to false.
-    } else {
-       
-        local rMost is missileList[0].
-        local rDist is abs(vdot(ship:facing:starvector, missileList[0]:position - ship:position)).
+    if missileList:empty { break. }
 
-        for missile in missileList {
-            local localRDist is abs(vdot(ship:facing:starvector, missile:position - ship:position)).
+    local eMost is missileList[0].
+    local eDist is (missileList[0]:position - core:part:position):mag.
+
+    for missile in missileList {
+        local localEDist is (missile:position - core:part:position):mag.
         
-            if localRDist > rDist {
-                set rDist to localRDist.
-                set rMost to missile.
-            }
+        if localEDist > eDist {
+            set eDist to localEDist.
+            set eMost to missile.
+            wait 0.
         }
-        
-        set rMost:tag to missileIteration:tostring.
-        set missileIteration to missileIteration + 1.
     }
+
+    set eMost:tag to missileIteration:tostring.
+    processor(missileIteration:tostring):deactivate().
+    set missileIteration to missileIteration + 1.
+    
+    
 }
 
 function launchFunction {
+
     local messageList is list(missile_target, conGain).
     local engagedMissile is processor(engageNumber:tostring).  
+    processor(engageNumber:tostring):activate().
+    wait 0.
     engagedMissile:connection:sendmessage(messageList).
     set engageNumber to engageNumber+1.
     
@@ -220,27 +215,18 @@ gui:HIDE().
 
 function updateList {
     target_list:clear().
+    targetPopUp:clear.
     list targets in target_list.
-
     for plane in target_list {
-    if plane:type <> "spaceObject" {
-        if targetPopUp:options:find(plane) <> -1 {
-            
-        } else {
-            targetPopUp:addOption(plane).
-        }
-        
-    }    
+        if plane:type <> "spaceObject" and targetPopUp:options:find(plane) = -1 {
+         targetPopUp:addOption(plane).
+        }    
     }
-    if targetPopUp:value <> "" {
-        set missile_target to targetPopUp:value.
-    }
-    
+    set missile_target to targetPopUp:value.    
 }
 
 function radioMode {
     parameter selectedRadio.
-
     if selectedRadio = radio_tarSel {
         bottom_vLayout:showonly(target_layout).
     } else if selectedRadio = radio_telemetry {
