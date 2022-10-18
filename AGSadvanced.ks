@@ -20,7 +20,8 @@ set config:ipu to 100. //On extremely fast encounters this might be too low.
 
 /////////////////////////////////// VARIABLES /////////////////////////////////// 
 
-
+//percentage change of thrust that leads to decouping
+local thrustSensitivity is 0.05.
 
 // steering manager //
 
@@ -49,8 +50,12 @@ local distance_to_target is currentLOS:mag. //ship's distance to target (scalar)
 local previousT is time:seconds.
 local previousLos is currentLOS.
 
+
+
 local previousVNorm is v(0,0,0).
 local previousAcc is 0.
+
+local previousThrust is 0.
 
 // sound //
 local v0 is getVoice(0).
@@ -65,6 +70,7 @@ local storeQueue is core:messages:pop:content. //stores message for multi access
  set missile_target to storeQueue[0].
  set conGain to storeQueue[1].
 
+local currentStage is 0.
 launchFunction().
 ///////////////////////////////////  MAIN LOGIC /////////////////////////////////// 
 
@@ -74,9 +80,10 @@ function launchFunction {
 
    // firing the missile //
     
-    core:part:decoupler:getmodulebyindex(0):doevent("decouple"). //as staging does not work for non active crafts, using an action group to turn on engine is recommended to activate a rocket far away. A missile fired from an active craft can stage without issues.
+    core:part:decoupler:getmodulebyindex(0):doevent("decouple"). //decouple missile, works on non active crafts
     wait 0.5.
-    ag10 on.//control point and engine fire
+    nextStage(0). //automatically turns on engines in current stage
+    ag10.//control point
 
     // locking steering and throttle outside of loop //
     lock steering to steer_vector.
@@ -87,6 +94,7 @@ function launchFunction {
     rcs on.
     
     until false {
+
          // updating variables
         set currentLOS to missile_target:position - ship:position. //ship's distance to target (vector)
 
@@ -94,7 +102,31 @@ function launchFunction {
 
         // logic
         a_cmd().
+        
+        if (previousThrust - ship:availablethrust) > thrustSensitivity * previousThrust { //a stageSensitivity drop in thrust will stage
+            //engines should be named as sDesiredStageNumber + "u" if the engine should not be decoubled
+            //cheching decouplable engines
+            local engineList is ship:partstagged("s" + currentStage:tostring).
+            
+            if engineList:length > 0 {
+                //decouple engines in current stage
+                for engines in engineList {
+                    engines:decoupler:getmodulebyindex(0):doevent("decouple").
+                }
+                //stage next engines
+                nextStage().
+            }
+
+            //chechinng undecouplable engines
+            set engineList to ship:partstagged("s" + currentStage:tostring + "u").
+            if engineList:length > 0 {
+                //stage next engines
+                nextStage().
+            }
+            set currentStage to currentStage + 1.
     }
+    set previousThrust to ship:availablethrust.
+    wait 0.
 }
 
 // this is the navigation function aka the brains of the whole thing //
@@ -115,19 +147,19 @@ function a_cmd {
     local deltaVNorm is (vxcl(currentLOS, missile_target:velocity:surface) - previousVNorm)/max(0.0002,(currentT-previousT)).
 
     // commanded accelerations //
-    local aNorm is conGain * (deltaVNorm + up:vector*targetGravity) / 2.
-    local aCmd is conGain * deltaErr.
+    local aNorm is conGain * (deltaVNorm + up:vector*targetGravity):mag / 2.
+    local aCmd is conGain * deltaErr. //+ aNorm.
 
     
    
     // guidance //
 
     if ship:airspeed < 20 {
-        set steer_vector to ship:facing:vector.// if firing from ground either use up:vector or up:vecttor + currentLOS:normalized. Air to air should aim ship:velocity:surface.
+        set steer_vector to ship:velocity:surface.// if firing from ground either use up:vector or up:vecttor + currentLOS:normalized. Air to air should aim ship:velocity:surface.
     } else if currentErr < 90 {
-        set steer_vector to ship:velocity:surface * angleAxis(aCmd, vCrs(previousLos, currentLOS:normalized)) + aNorm.
+        set steer_vector to ship:velocity:surface * angleAxis(aCmd, vCrs(previousLos, currentLOS:normalized)).
     } else {
-        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)) - aNorm.
+        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)).
     }
     
     // approach modes sensitivity //
@@ -161,4 +193,28 @@ function a_cmd {
     set previousT to currentT.
     set previousLos to currentLOS.
     set previousVNorm to currentVNorm.
+}
+
+function nextStage {
+
+parameter stagesAhead is 1. //1 is the next stage
+
+    //acttivate non decoupable engines for stagesAhead
+    local targetList is ship:partstagged("s" + (currentStage+stagesAhead):tostring).
+        
+        if targetList:length > 0 {
+            for engines in targetList {
+                engines:activate().
+            }
+        }
+
+    //acttivate non decoupable engines for stagesAhead
+    set targetList to ship:partstagged("s" + (currentStage+stagesAhead):tostring + "u").
+        if targetList:length > 0 {  
+            for engines in targetList {
+            engines:activate().
+            }
+        }
+    }
+
 }
