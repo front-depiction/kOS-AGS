@@ -13,7 +13,7 @@
 //        |_|   /_/    |_|  |_|    \___/ |_| |_| \__|         \__,_| \___|| .__/ |_| \___| \__||_| \___/ |_| |_|
 //                                                   ______              | |                                   
 //                                                 |______|             |_|                                                             
-// start script
+
 @lazyGlobal off.
 clearScreen.
 set config:ipu to 50. 
@@ -21,12 +21,10 @@ set config:ipu to 50.
 /////////////////////////////////// VARIABLES /////////////////////////////////// 
 
 // locking throttle//
-
 local dThrottle is 0. // desired throttle
 local steer_vector is up:vector.
 
 // controller gain //
-
 local conGain is 4.5.
 
 // targets // 
@@ -37,11 +35,9 @@ list targets in target_list.
 
 // ship relevant //
 local line_of_sight is missile_target:position - ship:position. //ship's distance to target (vector)
-
 local distance_to_target is line_of_sight:mag. //ship's distance to target (scalar)
 
 // time variables //
-
 local previousT is time:seconds.
 local previousErr is 0.
 local previousLos is line_of_sight.
@@ -52,20 +48,16 @@ local v0 is getVoice(0).
     set v0:wave to "sine".
 // arming sequence //
 local engageNumber is 0.
-//local engagedMissile is processor("missile"). runs locally in function
 
 // missile autoassign
-
 local missileIteration is engageNumber.
 /////////////////////////////////// GUI SETUP /////////////////////////////////// 
 
 LOCAL gui IS GUI(0).
 
-
 ///// ADD WIDGETS /////
 
 // left bar //
-
 local hBars is gui:addhlayout().
 local leftv_layout is hBars:addvlayout().
 
@@ -96,10 +88,7 @@ local radio_tarSel is modes:addradiobutton("Target selection", true).
 local radio_telemetry is modes:addradiobutton("Telemetry", false).
 
 // bottom layout //
-
 local bottom_vLayout is leftv_layout:addvlayout().
-
-
 
 // select target //
 local target_layout is bottom_vLayout:addvlayout().
@@ -111,7 +100,6 @@ set target_title:style:align to "center".
 local popUp_choice to "".
 local targetPopUp is target_layout:addpopupmenu().
 set targetPopUp:optionsuffix to "name".
-
 
     // assign functions 
 
@@ -125,8 +113,8 @@ set targetPopUp:optionsuffix to "name".
 // update button 
 LOCAL updateButton TO target_layout:ADDBUTTON("Update").
 set updateButton:ONCLICK TO { updateList(). }.
-// launch button //
 
+// launch button //
 LOCAL launchButton TO target_layout:ADDBUTTON("Launch").
 set launchButton:ONCLICK TO launchFunction@.
 
@@ -138,7 +126,6 @@ set telemetry_title:style:hstretch to true.
 set telemetry_title:style:align to "center".
 
 // gain slider //
-
 local gain_title is leftv_layout:ADDLABEL(" <b> Controller Gain </b>" + conGain).
 set gain_title:style:wordwrap to false.
 set gain_title:STYLE:ALIGN TO "CENTER".
@@ -160,15 +147,11 @@ set telemetry_targDistance:style:wordwrap to false.
 set telemetry_targDistance:style:align to "left".
 
 // Show the GUI //
-
 bottom_vLayout:showonly(target_layout). //begin by showing just the selected option
-
 updateList().
-
 gui:SHOW().
 ///////////////////////////////////  MAIN LOGIC /////////////////////////////////// 
 //auto assign missile name
-
 until false  {
     
     local missileList is ship:partstagged("missile").
@@ -193,7 +176,10 @@ until false  {
     
     
 }
-
+//close gui
+wait until ag9. //action group 9 kills the program
+gui:HIDE().
+/////////////////////////////////// FUNCTIONS /////////////////////////////////// 
 function launchFunction {
 
     local messageList is list(missile_target, conGain).
@@ -204,11 +190,6 @@ function launchFunction {
     set engageNumber to engageNumber+1.
     
 } 
-
-//close gui
-wait until false.
-gui:HIDE().
-/////////////////////////////////// FUNCTIONS /////////////////////////////////// 
 
 function updateList {
     target_list:clear().
@@ -230,4 +211,3 @@ function radioMode {
         bottom_vLayout:showonly(telemetry_layout).
     }
 }
-
