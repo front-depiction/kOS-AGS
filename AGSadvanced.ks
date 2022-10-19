@@ -24,18 +24,15 @@ set config:ipu to 100. //On extremely fast encounters this might be too low.
 local thrustSensitivity is 0.05.
 
 // steering manager //
-
 set steeringManager:maxstoppingtime to 30.
 set steeringManager:pitchpid:ki to 0.5.
 set steeringManager:yawpid:ki to 0.5.
 
 // locking throttle//
-
 local dThrottle is 0. // desired throttle
 local steer_vector is up:vector.
 
 // controller gain //
-
 local conGain is 4.5.
 
 // targets // 
@@ -43,14 +40,11 @@ local missile_target is ship.
 
 // ship relevant //
 local currentLOS is missile_target:position - ship:position. //ship's distance to target (vector)
-
 local distance_to_target is currentLOS:mag. //ship's distance to target (scalar)
-// time variables //
 
+// time variables //
 local previousT is time:seconds.
 local previousLos is currentLOS.
-
-
 
 local previousVNorm is v(0,0,0).
 local previousAcc is 0.
@@ -63,7 +57,6 @@ local v0 is getVoice(0).
     set v0:wave to "sine".
 
 // wait until launch signal is sent //
-
 wait until not core:messages:empty.
 local storeQueue is core:messages:pop:content. //stores message for multi access.
 
@@ -147,7 +140,7 @@ function a_cmd {
     local deltaVNorm is (vxcl(currentLOS, missile_target:velocity:surface) - previousVNorm)/max(0.0002,(currentT-previousT)).
 
     // commanded accelerations //
-    local aNorm is conGain * (deltaVNorm + up:vector*targetGravity):mag / 2.
+    local aNorm is conGain * (deltaVNorm + up:vector*targetGravity) / 2.
     local aCmd is conGain * deltaErr. //+ aNorm.
 
     
@@ -157,9 +150,9 @@ function a_cmd {
     if ship:airspeed < 20 {
         set steer_vector to ship:velocity:surface.// if firing from ground either use up:vector or up:vecttor + currentLOS:normalized. Air to air should aim ship:velocity:surface.
     } else if currentErr < 90 {
-        set steer_vector to ship:velocity:surface * angleAxis(aCmd, vCrs(previousLos, currentLOS:normalized)).
+        set steer_vector to ship:velocity:surface * angleAxis(aCmd, vCrs(previousLos, currentLOS:normalized)) + aNorm.
     } else {
-        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)).
+        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)) - aNorm.
     }
     
     // approach modes sensitivity //
@@ -199,7 +192,7 @@ function nextStage {
 
 parameter stagesAhead is 1. //1 is the next stage
 
-    //acttivate non decoupable engines for stagesAhead
+    //activate non decoupable engines for stagesAhead
     local targetList is ship:partstagged("s" + (currentStage+stagesAhead):tostring).
         
         if targetList:length > 0 {
@@ -208,7 +201,7 @@ parameter stagesAhead is 1. //1 is the next stage
             }
         }
 
-    //acttivate non decoupable engines for stagesAhead
+    //activate non decoupable engines for stagesAhead
     set targetList to ship:partstagged("s" + (currentStage+stagesAhead):tostring + "u").
         if targetList:length > 0 {  
             for engines in targetList {
