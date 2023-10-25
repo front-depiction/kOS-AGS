@@ -55,7 +55,6 @@ $$g_{\text{target}} = \frac{G \times M_{planet}}{(R_{planet} + H_{target})^2}$$
 
 - This enhanced version is termed as Augmented Proportional Navigation (APN).
 - In the APN paradigm, post-launch, the missile undergoes vehement adjustments to align itself onto the LOS towards its target. As the missile gravitates closer, it necessitates minimal course corrections and eventually intercepts the target following an almost linear trajectory.
-- Note: my implementation ignores closing velocity, adding it is as simple as multiplying delta error by rV
 
 ## Implementation and Configuration
 
