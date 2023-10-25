@@ -141,7 +141,7 @@ function a_cmd {
 
     // commanded accelerations //
     local aNorm is conGain * (deltaVNorm + up:vector*targetGravity) / 2.
-    local aCmd is conGain * deltaErr. //+ aNorm.
+    local aCmd is conGain * deltaErr + aNorm.
 
     
    
