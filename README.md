@@ -61,7 +61,7 @@ $$g_{\text{target}} = \frac{G \times M_{planet}}{(R_{planet} + H_{target})^2}$$
 ### Plane Configuration:
 
 - The primary plane must house a CPU running `AGScontroller.ks`.
-- Missiles should be affixed to the plane via a decoupler.
+- Missiles should be affixed to the plane via a decoupler and equipped with a cpu running `AGSadvanced.ks`.
 
 ### Missile Configuration:
 
