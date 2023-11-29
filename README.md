@@ -4,8 +4,11 @@
 ## Introduction
 
 Proportional Navigation (PN), often referred to as Collision Homing or a form of 'lead-pursuit', stands as a rudimentary yet exceedingly potent missile guidance strategy. Its foundational premise rests on driving the missile to anticipatively "lead" its target, thereby obviating the need to discern the target's velocity or range.
-A short paper that can help better understand proportional navigation can be found at [here](https://www.ijser.org/researchpaper/Performance-Evaluation-of-Proportional-Navigation-Guidance-for-Low-Maneuvering-Targets.pdf).
-A comprehensive overview of various guidance laws, including various branches of Proportional Navigation, complemented by illustrative code examples, can be found [here](https://www.moddb.com/members/blahdy/blogs/gamedev-introduction-to-proportional-navigation-part-i).
+
+A short paper that can help better understand proportional navigation can be found [here](https://www.ijser.org/researchpaper/Performance-Evaluation-of-Proportional-Navigation-Guidance-for-Low-Maneuvering-Targets.pdf). <br/>
+A great youtube series by Ben Dickinson about Missile Guidance Fundamentals can be found [here](https://youtube.com/playlist?list=PLcmbTy9X3gXt02z1wNy4KF5ui0tKxdQm7&si=HMcqk2OEytIKO8Ym).
+Ben's entire channel, not just this particular series, is dedicated to teaching guidance and control. I highly recommend going through it. <br/>
+A comprehensive overview of guidance laws, including different branches of Proportional Navigation, complemented with illustrative code examples, can be found [here](https://www.moddb.com/members/blahdy/blogs/gamedev-introduction-to-proportional-navigation-part-i).
 
 ## Core Principle
 
