@@ -141,8 +141,7 @@ function a_cmd {
 
     // commanded accelerations //
     local aNorm is conGain * (deltaVNorm + up:vector*targetGravity) / 2.
-    //local aCmd is conGain * rV * deltaErr + aNorm
-    local aCmd is conGain * deltaErr + aNorm.
+    local aCmd is conGain * deltaErr.
 
     
    
@@ -153,7 +152,7 @@ function a_cmd {
     } else if currentErr < 90 {
         set steer_vector to ship:velocity:surface * angleAxis(aCmd, vCrs(previousLos, currentLOS:normalized)) + aNorm.
     } else {
-        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)) - aNorm.
+        set steer_vector to ship:velocity:surface * angleAxis(180-aCmd, vCrs(previousLos, currentLOS:normalized)) + aNorm.
     }
     
     // approach modes sensitivity //
